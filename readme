@@ -10,7 +10,9 @@ Versions :
 - Beta 0.9 - First release
 
 To Do :
-- Implement parameter smoothing to avoid glitches during automation.
+- Implement parameter smoothing to avoid glitches during automation,
+- Fixing Freq display for low shelf,
+- Saturation increments with mouse control,
 
 Dependecies :
 Filter methods are derived from Oliver Belanger's COOKDSP library - Copyright (c) - 2014 - Olivier Belanger
