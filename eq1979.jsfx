@@ -1,8 +1,8 @@
 desc:1979EQ - Vintage Neve 1073 gain and filter stage emulation
 
-// =================
-// Version Beta 0.9
-// =================
+// ==================
+// Version Beta 0.91
+// ==================
 // Frequency accurate modeling of a Neve 1073 filter stage combined with an input gain-compensated saturation.
 // Designed by cascading ~30 peq/butterworth filters to reproduce frequency response, bumps and drops of 
 // the original console strip.
@@ -505,7 +505,7 @@ input_m==1 ? (
  delta_y+=last_y-mouse_y;
  last_y=mouse_y;
  delta_y!=0 ? (
- sat_amount+=delta_y/8;
+ sat_amount+=delta_y/6;
  delta_y=0;
  sat_amount>100 ? sat_amount=100;
  sat_amount<0 ? sat_amount=0;
@@ -795,10 +795,10 @@ gfx_measurestr("Low",w,h);
 gfx_x=pos_x-w/2;gfx_y=pos_y-diam*0.85;gfx_drawstr("Low");
 gfx_setfont(1, "Arial", 14);
 lpf_cut==0 ? (gfx_measurestr("Off",w,h); gfx_x=pos_x-w/2;gfx_y=pos_y+diam*0.55;gfx_drawstr("Off"););
-lpf_cut==1 ? (gfx_measurestr("50",w,h); gfx_x=pos_x-w/2;gfx_y=pos_y+diam*0.55;gfx_drawstr("50"););
-lpf_cut==2 ? (gfx_measurestr("80",w,h); gfx_x=pos_x-w/2;gfx_y=pos_y+diam*0.55;gfx_drawstr("80"););
-lpf_cut==3 ? (gfx_measurestr("160",w,h); gfx_x=pos_x-w/2;gfx_y=pos_y+diam*0.55;gfx_drawstr("160"););
-lpf_cut==4 ? (gfx_measurestr("300",w,h); gfx_x=pos_x-w/2;gfx_y=pos_y+diam*0.55;gfx_drawstr("300"););
+lpf_cut==1 ? (gfx_measurestr("35",w,h); gfx_x=pos_x-w/2;gfx_y=pos_y+diam*0.55;gfx_drawstr("35"););
+lpf_cut==2 ? (gfx_measurestr("60",w,h); gfx_x=pos_x-w/2;gfx_y=pos_y+diam*0.55;gfx_drawstr("60"););
+lpf_cut==3 ? (gfx_measurestr("110",w,h); gfx_x=pos_x-w/2;gfx_y=pos_y+diam*0.55;gfx_drawstr("110"););
+lpf_cut==4 ? (gfx_measurestr("220",w,h); gfx_x=pos_x-w/2;gfx_y=pos_y+diam*0.55;gfx_drawstr("220"););
 gfx_measurestr("+18",w,h);
 gfx_x=pos_x+cos(0.3*pi)*1.2*diam/2-w/2+h;gfx_y=pos_y+sin(0.3*pi)*1.2*diam/2+h/2;gfx_drawstr("+18");
 gfx_measurestr("-18",w,h);
