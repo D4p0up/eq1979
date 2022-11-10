@@ -7,13 +7,18 @@ Controls :
 - Frequency bands for Mid and Low and gain trimming is done using mouse wheel.
 
 Versions :
+- Beta 0.92 :
+  - GUI : Added mousex lock on control change, no more control swapping when adjusting parameter
+  - Lowered low and high shelf EQ max gain down to 16dB as per original 1073 design
+  - Added EQ On/Off and Phase buttons as per original 1073 design
+  - minor tweaks
 - Beta 0.91 - Low Shelf GUI Fix and Sat mouse speed increase by 25%
 - Beta 0.9 - First release
 
 To Do :
 - Implement parameter smoothing to avoid glitches during automation,
-- Fixing Freq display for low shelf,
-- Saturation increments with mouse control,
+- Low shelf filter bumps
+- BLower high pass input filter to ear accurate model 
 
 Dependecies :
 Filter methods are derived from Oliver Belanger's COOKDSP library - Copyright (c) - 2014 - Olivier Belanger
