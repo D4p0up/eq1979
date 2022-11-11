@@ -7,6 +7,10 @@ Controls :
 - Frequency bands for Mid and Low and gain trimming is done using mouse wheel.
 
 Versions :
+- Beta 0.93
+  - HPF frequency response tuned with expected bump
+  - Testing parameter smoothing on HPF
+  - Correcting minor GUI bugs on switching to +-16dB for shelfs
 - Beta 0.92 :
   - GUI : Added mousex lock on control change, no more control swapping when adjusting parameter
   - Lowered low and high shelf EQ max gain down to 16dB as per original 1073 design
