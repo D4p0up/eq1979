@@ -7,6 +7,10 @@ Controls :
 - Frequency bands for Mid and Low and gain trimming is done using mouse wheel.
 
 Versions :
+- Beta 0.95
+  - Improved modeling of HPF and Low Shelf filter responses
+  - 10Hz parameter smoothing on Low, Mid and High frequency gain parameters for automation-safe operation
+- Beta 0.94 - internal bugfixing stage never released
 - Beta 0.93
   - HPF frequency response tuned with expected bump
   - Testing parameter smoothing on HPF
@@ -20,9 +24,7 @@ Versions :
 - Beta 0.9 - First release
 
 To Do :
-- Implement parameter smoothing to avoid glitches during automation,
-- Low shelf filter bumps
-- BLower high pass input filter to ear accurate model 
+- Update saturation model to match harmonics brought by the Neve input gain stage / transformer
 
 Dependecies :
 Filter methods are derived from Oliver Belanger's COOKDSP library - Copyright (c) - 2014 - Olivier Belanger
