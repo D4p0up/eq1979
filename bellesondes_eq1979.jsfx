@@ -1,27 +1,17 @@
-desc:1979EQ - Vintage Neve 1073 gain and filter stage emulation
+desc: EQ1979 - Neve 1073 inspired channel strip EQ with smooth saturation (Belles Ondes)
+// Author: Belles Ondes
+// version: 0.96
+// Info&Manual: http://www.bellesondes.fr/wiki/doku.php?id=eq1979
+// GUI by Fluidshell: http://www.fluidshell.com/
 
-// ==================
-// Version Beta 0.95
-// ==================
-// Frequency accurate modeling of a Neve 1073 filter stage combined with an input gain-compensated saturation.
-// Designed by cascading ~30 peq/butterworth filters to reproduce frequency response, bumps and drops of 
-// the original console strip.
-// Input saturation based on "arctan" modeling, which is gain-compensated. Includes additional independant gain trimming.
-// Controls :
-// - Left mouse button to change knob value, right mouse button resets control.
-// - Frequency bands for Mid and Low and gain trimming is done using mouse wheel.
-//
-// Filter methods are derived from Oliver Belanger's COOKDSP library
-// Copyright (c) - 2014 - Olivier Belanger
-//
-slider1:gain_db=0<-24,24,0.5>-Trim Gain (dB)
-slider2:c_hpf_gain=0<-16,16,1>-High frequency shelf Gain (dB)
-slider3:c_mpf_gain=0<-18,18,1>-Mid frequency shelf gain (dB)
+slider1:gain_db=0<-24,24,1>-Trim Gain (dB)
+slider2:c_hpf_gain=0<-16,16,0.1>-High frequency shelf Gain (dB)
+slider3:c_mpf_gain=0<-18,18,0.1>-Mid frequency shelf gain (dB)
 slider4:mpf_cut=0<0,6,1{Off,0.36kHz,0.7kHz,1.6kHz,3.2kHz,4.8kHz,7.2kHz}>-Mid frequency (Hz)
-slider5:c_lpf_gain=0<-16,16,1>-Low frequency gain (dB)
+slider5:c_lpf_gain=0<-16,16,0.1>-Low frequency gain (dB)
 slider6:lpf_cut=0<0,4,1{Off,35Hz,60Hz,110Hz,220Hz}>-Low frequency shelf (Hz)
 slider7:hpf_cut=0<0,4,1{Off,50Hz,80Hz,160Hz,300Hz}>-Input Highpass frequency (Hz)
-slider8:sat_amount=1<0,100,0.1>-Saturation Amount (%)
+slider8:sat_amount=0<0,100,0.1>-Saturation Amount (%)
 slider9:eq_enable=1<0,1,1>-Eq enable (On/Off)
 slider10:phase_enable=0<0,1,1>-Inver phase (On/Off)
  
@@ -34,12 +24,28 @@ options: no_meter
 
 @init
 last_gain = 10^(gain_db/20);
+slick_gui=1; // Legacy - Change to 0 to switch back to Beta gfx-based GUI
 
 // Miscelaneous Inits
 pi=3.141592;
 e=2.71828;
 bgcolor=104+127*256+150*65536; //That cute vintage blue
 protec=0; //mouse protection, 0 = Available
+bias=0.0021;
+noisefloor=0.00000321;
+
+// GUI Inits
+gfx_loadimg(1,"./data/EQ1979_fond_FINAL.png"); //Background 841,188
+gfx_loadimg(2,"./data/Drive.png"); //Drive 110,109 @42,45 127F
+gfx_loadimg(3,"./data/TRIM.png"); //TRIM 63,18 @66,161 49F
+gfx_loadimg(4,"./data/High.png"); //HS 83,83 @210,58 127F
+gfx_loadimg(5,"./data/Mid.png"); //MID 83,83 @364,58 127F
+gfx_loadimg(6,"./data/EQ_MID_FULL.png"); //MID band 63,18 @374,161 7F
+gfx_loadimg(7,"./data/Low.png"); //LOW 83,83 @518,58 127F
+gfx_loadimg(8,"./data/EQ_LOW_FULL.png"); //LOW band 63,18 @527,161 5F
+gfx_loadimg(9,"./data/HPF.png"); //HPF band 117,116 @657,41 5F
+gfx_loadimg(10,"./data/EQ.png"); //eq 51,30 @778,66 2F
+gfx_loadimg(11,"./data/PHASE.png"); //ph band 51,32 @778,96 2F
 
 // Filtered parameters inits
 // High Shelf Smoothing
@@ -47,8 +53,6 @@ fparam=10;
 hpf_gain=c_hpf_gain;
 mpf_gain=c_mpf_gain;
 lpf_gain=c_lpf_gain;
-
-
 
 // =============================================
 // LOP - Copyright (c) - 2014 - Olivier Belanger
@@ -282,8 +286,10 @@ function eq_do(signal)
 // Frequency response hardware emulation
 //====================================================
 // Input HPF Hardware Emulation Filter
-f_in_1.hip(12);
-f_in_2.hip(12);
+f_in_1.hip(11);
+f_in_2.hip(11);
+f_in_3.hip(5);
+f_in_4.hip(5);
 // Input Sharp LF highpass Filter
 f_SLF_1.buthp(50);
 f_SLF_2.buthp(50);
@@ -488,38 +494,48 @@ LF_update();
  
 @block
 d_gain = (next_gain - last_gain)/samplesblock;
+
+@sample
+// High Shelf Smoothing
 HF_update();
 MF_update();
 LF_update();
-
- 
-@sample
-// High Shelf Smoothing
 hpf_gain = f_pHF.lop_do(c_hpf_gain);
 mpf_gain = f_pMF.lop_do(c_mpf_gain);
 lpf_gain = f_pLF.lop_do(c_lpf_gain);
 
-
-// Gain Trimming
-spl0 *= last_gain;
-spl1 *= last_gain;
-last_gain += d_gain;
+// Input HPF Hardware Emulation Filter
+spl0 = f_in_1.hip_do(spl0);
+spl1 = f_in_2.hip_do(spl1);
 
 // Phase
 phase_enable ? (
 spl0 *= -1;
 spl1 *= -1;
 );
+
+// Asymetry
+spl0 += (1-((spl0)^2)/(1+(spl0)^2))*bias*sat_S/10;
+spl1 += (1-((spl1)^2)/(1+(spl1)^2))*bias*sat_S/10;
+
+// noise
+spl0 += noisefloor*rand();
+spl1 += noisefloor*rand();
  
 // Saturation
 sat_amount ? (
 spl0 = sat_trim*atan(spl0*sat_S)/atan_S;
 spl1 = sat_trim*atan(spl1*sat_S)/atan_S;
 );
- 
+
+// Gain Trimming
+spl0 *= last_gain;
+spl1 *= last_gain;
+last_gain += d_gain;
+
 // Input HPF Hardware Emulation Filter
-spl0 = f_in_1.hip_do(spl0);
-spl1 = f_in_2.hip_do(spl1);
+spl0 = f_in_3.hip_do(spl0);
+spl1 = f_in_4.hip_do(spl1);
 
 eq_enable ? ( 
 // Input Sharp LF Filter
@@ -575,7 +591,7 @@ spl0 = f_HLF_3.butlp_do(spl0);
 spl1 = f_HLF_2.butlp_do(spl1);
 spl1 = f_HLF_4.butlp_do(spl1);
  
-@gfx 820 200
+@gfx 841 188
 gfx_clear=bgcolor;
 //===========================================================================
 // HMI control - Mouse handling
@@ -585,7 +601,7 @@ input_m=mouse_cap;
 input_m==0 ? (last_y=mouse_y;delta_y=0;protec=0;);
 // Bouton 1
 input_m==1 ? (
- ((mouse_x<175)&&(protec==0))||(protec==1) ? (
+ ((mouse_x<175)&&(protec==0)&&(mouse_y<150))||(protec==1) ? (
  //====== Red Saturation
  protec=1;
  delta_y+=last_y-mouse_y;
@@ -599,8 +615,22 @@ input_m==1 ? (
  sat_update();
  );
  );
+ ((mouse_x<175)&&(protec==0)&&(mouse_y>150))||(protec==8) ? (
+ //====== Trim Gain
+ protec=8;
+ delta_y+=last_y-mouse_y;
+ last_y=mouse_y;
+ abs(delta_y)>10 ? (
+ gain_db+=sign(delta_y);
+ delta_y=0;
+ gain_db>24 ? gain_db=24;
+ gain_db<-24 ? gain_db=-24;
+ sliderchange(slider1);
+ gain_update();
+ );
+ );
  ((mouse_x>175)&&(mouse_x<325)&&(protec==0))||(protec==2) ? (
- // ====== High Shelf
+ // ====== High Shelf Gain
  protec=2;
  delta_y+=last_y-mouse_y;
  last_y=mouse_y;
@@ -613,7 +643,8 @@ input_m==1 ? (
  HF_update();
  );
  ); 
- ((mouse_x>325)&&(mouse_x<475)&&(protec==0))||(protec==3) ? (
+ ((mouse_x>325)&&(mouse_x<475)&&(protec==0)&&(mouse_y<150))||(protec==3) ? (
+ // ====== Mid Bell Gain 
  protec=3;
  delta_y+=last_y-mouse_y;
  last_y=mouse_y;
@@ -626,7 +657,22 @@ input_m==1 ? (
  MF_update();
  );
  ); 
- ((mouse_x>475)&&(mouse_x<625)&&(protec==0))||(protec==4) ? (
+ ((mouse_x>325)&&(mouse_x<475)&&(protec==0)&&(mouse_y>150))||(protec==9) ? (
+ // ====== Mid Bell Frequency 
+ protec=9;
+ delta_y+=last_y-mouse_y;
+ last_y=mouse_y;
+ abs(delta_y)>10 ? (
+ mpf_cut+=sign(delta_y);
+ delta_y=0;
+ mpf_cut>6 ? mpf_cut=6;
+ mpf_cut<0 ? mpf_cut=0;
+ sliderchange(slider4);
+ MF_update();
+ );
+ ); 
+ ((mouse_x>475)&&(mouse_x<625)&&(protec==0)&&(mouse_y<150))||(protec==4) ? (
+ // ====== Low Shelf Gain
  protec=4;
  delta_y+=last_y-mouse_y;
  last_y=mouse_y;
@@ -638,7 +684,21 @@ input_m==1 ? (
  sliderchange(slider5);
  LF_update();
  );
- );     
+ ); 
+ ((mouse_x>475)&&(mouse_x<625)&&(protec==0)&&(mouse_y>150))||(protec==10) ? (
+ // ====== Low Shelf Frequency
+ protec=10;
+ delta_y+=last_y-mouse_y;
+ last_y=mouse_y;
+ abs(delta_y)>10 ? (
+ lpf_cut+=sign(delta_y);
+ delta_y=0;
+ lpf_cut>4 ? lpf_cut=4;
+ lpf_cut<0 ? lpf_cut=0;
+ sliderchange(slider6);
+ LF_update();
+ );
+ ); 
  ((mouse_x>625)&&(mouse_x<775)&&(protec==0))||(protec==5) ? (
  protec=5;
  delta_y+=last_y-mouse_y;
@@ -649,7 +709,6 @@ input_m==1 ? (
  hpf_cut>4 ? hpf_cut=4;
  hpf_cut<0 ? hpf_cut=0;
  sliderchange(slider7);
- // HPF Stage update
  hpf_update();
  );
  );
@@ -665,15 +724,16 @@ input_m==1 ? (
  );
  );
  
-// Molette
+// Wheel
  mouse_wheel!=0 ? (
  mouse_x<175 ? (
- gain_db+=sign(mouse_wheel)/2;
+ gain_db+=sign(mouse_wheel);
  delta_y=0;
  gain_db>24 ? gain_db=24;
  gain_db<-24 ? gain_db=-24;
  sliderchange(slider1);
- gain_update(););
+ gain_update();
+ );
  (mouse_x>325)&&(mouse_x<475) ? (
  mpf_cut+=sign(mouse_wheel);
  delta_y=0;
@@ -697,7 +757,6 @@ input_m==1 ? (
  hpf_cut<0 ? hpf_cut=0;
  sliderchange(slider7);
  hpf_update();
- 
  );
  mouse_wheel=0;
  ); 
@@ -711,7 +770,7 @@ input_m==2? (
  );
  
  mouse_x<175 ? (
- mouse_y < 50 ? (
+ mouse_y > 161 ? (
  gain_db=0;
  sliderchange(slider1);
  gain_update();
@@ -752,7 +811,21 @@ input_m==2? (
  hpf_update();
  );
  );
- 
+
+slick_gui ? (
+gfx_blit(1, 1, 0);
+gfx_blit(2, 1, 0, 0, 0+floor((sat_amount*126/100))*109, 110, 109, 42, 45, 110, 109, 0, 0);  //Drive 110,109 @42,45 127F
+gfx_blit(3, 1, 0, 0, 0+(gain_db+24)*18, 63, 18, 66, 161, 63, 18, 0, 0);
+gfx_blit(4, 1, 0, 0, 0+floor((hpf_gain+16)*127/32)*83, 83, 83, 210, 58, 83, 83, 0, 0);//HS 83,83 @210,58 127F
+gfx_blit(5, 1, 0, 0, 0+floor((mpf_gain+18)*127/36)*83, 83, 83, 364, 58, 83, 83, 0, 0);//MID 83,83 @364,58 127F
+gfx_blit(6, 1, 0, 0, 0+(6-mpf_cut)*18, 63, 18, 374, 161, 63, 18, 0, 0);
+gfx_blit(7, 1, 0, 0, 0+floor((lpf_gain+16)*127/32)*83, 83, 83, 518, 58, 83, 83, 0, 0);//LOW 83,83 @518,58 127F
+gfx_blit(8, 1, 0, 0, 0+(4-lpf_cut)*18, 63, 18, 528, 161, 63, 18, 0, 0);
+gfx_blit(9, 1, 0, 0, 0+(4-hpf_cut)*116, 117, 116, 657, 41, 117, 116, 0, 0);
+gfx_blit(10, 1, 0, 0, 0+eq_enable*30, 51, 30, 778, 66, 51, 30, 0, 0);
+gfx_blit(11, 1, 0, 0, 0+phase_enable*32, 51, 32, 778, 96, 51, 32, 0, 0);
+) : (
+
 //===========================================================================
 // Buttons
 //===========================================================================
@@ -974,4 +1047,5 @@ gfx_r=0.9;gfx_g=0.9;gfx_b=0.9;
 gfx_setfont(1, "Arial", 22);
 gfx_measurestr("EQ1979",w,h);
 gfx_x=820-w-10;gfx_y=10;
-gfx_drawstr("EQ1979");// 
+gfx_drawstr("EQ1979");
+);
