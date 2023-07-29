@@ -1,4 +1,4 @@
-###EQ1979 jsfx plugin
+### EQ1979 jsfx plugin
 
 -----
 
