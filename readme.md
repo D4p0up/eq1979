@@ -3,7 +3,7 @@
 -----
 
 ## Use the Github "Release" download link to get the plugin.
-Plugin works with external files located in /data folder.
+Plugin works with external files, notably GUI located in /data folder.
 
 -----
 
