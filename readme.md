@@ -1,5 +1,11 @@
+###EQ1979 jsfx plugin
+
+-----
+
 ## Use the Github "Release" download link to get the plugin.
 Plugin works with external files located in /data folder.
+
+-----
 
 Frequency accurate modeling of a Neve 1073 filter stage combined with an input gain-compensated saturation.
 Designed by cascading ~30 peq/butterworth filters to reproduce frequency response, bumps and drops of the original console strip.
