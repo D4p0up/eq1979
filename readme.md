@@ -10,13 +10,12 @@ Controls :
 - Frequency bands for Mid and Low and gain trimming is done using mouse wheel.
 
 Versions :
- - Beta 0.96
+- Beta 0.96
   - New slick GUI By Fluidshell Design !
   - Improved saturation with progressive bias error
   - Electrical components noise modeling added
   - Frequency band controls can now be set/reset using mouse click too (mousewheel still).
   - Right clicking on the lower right corner of the UI displays/hides reaper native slider controls.
-
 - Beta 0.95
   - Improved modeling of HPF and Low Shelf filter responses
   - 10Hz parameter smoothing on Low, Mid and High frequency gain parameters for automation-safe operation
